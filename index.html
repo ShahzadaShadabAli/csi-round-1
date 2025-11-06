@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ada's Core Round I - The Edison Maze Showdown</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #8B0000;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            padding: 2rem;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide.prev {
+            transform: translateX(-100%);
+        }
+
+        .content {
+            max-width: 1200px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: rgba(139, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 2px solid #DAA520;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        .content::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: #8B0000;
+            border-radius: 10px;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: #DAA520;
+            border-radius: 10px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: scale(0.9) translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            color: #DAA520;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            animation: glow 2s ease-in-out infinite alternate;
+            text-shadow: 0 0 20px rgba(218, 165, 32, 0.5);
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(218, 165, 32, 0.5);
+            }
+            to {
+                text-shadow: 0 0 30px rgba(218, 165, 32, 0.8);
+            }
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            color: #DAA520;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.8rem;
+            color: #DAA520;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: bold;
+        }
+
+        .timer-badge {
+            display: inline-block;
+            background: #8B0000;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #DAA520;
+            margin: 1rem auto;
+            border: 2px solid #DAA520;
+            text-align: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .info-card {
+            background: #8B0000;
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 2px solid #DAA520;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .info-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(218, 165, 32, 0.6);
+        }
+
+        .info-card h3 {
+            color: #DAA520;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card p {
+            color: #DAA520;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .rules-section {
+            color: #DAA520;
+            font-size: 1.2rem;
+            line-height: 2;
+            margin: 2rem 0;
+        }
+
+        .rules-section ul {
+            margin-left: 2rem;
+            margin-top: 1rem;
+        }
+
+        .rules-section li {
+            margin: 1rem 0;
+            padding-left: 0.5rem;
+        }
+
+        .warning-box {
+            background: #8B0000;
+            border: 3px solid #DAA520;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .warning-box p {
+            color: #DAA520;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .maze-slide {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .maze-info {
+            width: 100%;
+            text-align: center;
+        }
+
+        .maze-info h3 {
+            color: #DAA520;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .maze-info p {
+            color: #DAA520;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .points-badge {
+            display: inline-block;
+            background: #8B0000;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #DAA520;
+            margin-top: 1rem;
+            border: 2px solid #DAA520;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .maze-container {
+            width: 500px;
+            height: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 3px solid #DAA520;
+            transition: all 0.3s ease;
+            background: #8B0000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .maze-container:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 50px rgba(218, 165, 32, 0.8);
+        }
+
+        .maze-placeholder {
+            color: #DAA520;
+            font-size: 1.5rem;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: #8B0000;
+            border: 2px solid #DAA520;
+            color: #DAA520;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(218, 165, 32, 0.6);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background: #DAA520;
+            transition: width 0.3s ease;
+            z-index: 1001;
+            box-shadow: 0 2px 10px rgba(218, 165, 32, 0.8);
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: #8B0000;
+            padding: 1rem 1.5rem;
+            border-radius: 25px;
+            color: #DAA520;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: 2px solid #DAA520;
+            z-index: 1001;
+        }
+
+        .floating-particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translateY(-100px) translateX(50px);
+                opacity: 0.6;
+            }
+        }
+
+        .procedure-box {
+            background: #8B0000;
+            border: 2px solid #DAA520;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+
+        .procedure-box h3 {
+            color: #DAA520;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .procedure-box ol {
+            color: #DAA520;
+            font-size: 1.2rem;
+            line-height: 2;
+            margin-left: 2rem;
+        }
+
+        .procedure-box ul {
+            color: #DAA520;
+            font-size: 1.2rem;
+            line-height: 2;
+            margin-left: 2rem;
+        }
+
+        .procedure-box li {
+            margin: 0.5rem 0;
+        }
+
+        .highlight {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .difficulty-easy {
+            color: #DAA520;
+            font-size: 1.5rem;
+        }
+
+        .difficulty-medium {
+            color: #DAA520;
+            font-size: 1.5rem;
+        }
+
+        .difficulty-hard {
+            color: #DAA520;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="slide-counter" id="slideCounter">1 / 6</div>
+
+    <!-- Slide 1: Title -->
+    <div class="slide active">
+        <div class="content">
+            <h1>🤖 Ada's Core Round I</h1>
+            <p class="subtitle">The Edison Maze Showdown</p>
+            <div style="text-align: center;">
+                <div class="timer-badge">⏱️ Time Limit: 1 Hour 30 Minutes</div>
+            </div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>🎯 Challenge</h3>
+                    <p>Navigate 3 Mazes</p>
+                </div>
+                <div class="info-card">
+                    <h3>🏆 Total Points</h3>
+                    <p>Up to 35 Points</p>
+                </div>
+                <div class="info-card">
+                    <h3>🤖 Robot</h3>
+                    <p>Edison Robot</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2: Rules -->
+    <div class="slide">
+        <div class="content">
+            <h2>📋 Competition Rules</h2>
+            
+            <div class="warning-box">
+                <p>⚠️ NO EXTERNAL HELP ALLOWED ⚠️</p>
+                <p style="font-size: 1.1rem; margin-top: 0.5rem;">Google, AI Chatbots, or any external assistance</p>
+                <p style="font-size: 1rem; margin-top: 0.5rem;">(Marks deducted or potential disqualification)</p>
+            </div>
+
+            <div class="procedure-box">
+                <h3>📝 Competition Procedure:</h3>
+                <ol>
+                    <li><span class="highlight">Complete a maze</span> with your Edison robot</li>
+                    <li><span class="highlight">Raise your hand</span> to signal completion</li>
+                    <li>A <span class="highlight">host team member</span> will approach and assess your work</li>
+                    <li>Once <span class="highlight">approved</span>, proceed to the next maze</li>
+                    <li>Continue until all mazes are completed or time runs out</li>
+                </ol>
+            </div>
+
+            <div class="rules-section">
+                <h3 style="font-size: 2rem; text-align: center; margin-bottom: 1rem;">🎮 Maze Levels</h3>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>🟢 Easy</h3>
+                        <p style="font-size: 1.3rem;"><strong>5 Points</strong></p>
+                    </div>
+                    <div class="info-card">
+                        <h3>🟡 Medium</h3>
+                        <p style="font-size: 1.3rem;"><strong>10 Points</strong></p>
+                    </div>
+                    <div class="info-card">
+                        <h3>🔴 Hard</h3>
+                        <p style="font-size: 1.3rem;"><strong>20 Points</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3: Maze 1 - Walk in the Park -->
+    <div class="slide">
+        <div class="content">
+            <div class="maze-slide">
+                <div class="maze-info">
+                    <h2>Maze 1: Walk in the Park</h2>
+                    <h3 class="difficulty-easy">🟢 Easy Level</h3>
+                    <p>A simple, straightforward maze to get you started. Perfect for warming up your Edison robot and testing basic navigation skills.</p>
+                    <span class="points-badge">5 Points</span>
+                </div>
+                <div class="maze-container">
+                    <div class="maze-placeholder">
+                        <img src="1.png" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 4: Maze 2 - The Turnaround -->
+    <div class="slide">
+        <div class="content">
+            <div class="maze-slide">
+                <div class="maze-info">
+                    <h2>Maze 2: The Turnaround</h2>
+                    <h3 class="difficulty-medium">🟡 Medium Level</h3>
+                    <p>Things get trickier! This maze features challenging turns and requires more precise programming to navigate successfully.</p>
+                    <span class="points-badge">10 Points</span>
+                </div>
+                <div class="maze-container">
+                    <div class="maze-placeholder">
+                        <img src="2.png" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 5: Maze 3 - The Mess -->
+    <div class="slide">
+        <div class="content">
+            <div class="maze-slide">
+                <div class="maze-info">
+                    <h2>Maze 3: The Mess</h2>
+                    <h3 class="difficulty-hard">🔴 Hard Level</h3>
+                    <p>The ultimate challenge! A complex maze that will test all your skills. Good luck with this one! 😊</p>
+                    <span class="points-badge">20 Points</span>
+                </div>
+                <div class="maze-container">
+                    <div class="maze-placeholder">
+                       <img src="3.png" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 6: Final Reminders -->
+    <div class="slide">
+        <div class="content">
+            <h2>🎯 Final Reminders</h2>
+            
+            <div class="rules-section" style="text-align: center;">
+                <h3 style="font-size: 2rem; margin-bottom: 2rem;">Key Points to Remember</h3>
+                
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>⏰ Time</h3>
+                        <p>1 Hour 30 Minutes</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Manage your time wisely!</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>🚫 No Help</h3>
+                        <p>No Google or AI</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Use your own skills!</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>✋ Raise Hand</h3>
+                        <p>Signal completion</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Wait for assessment</p>
+                    </div>
+                </div>
+
+                <div class="warning-box" style="margin-top: 3rem;">
+                    <p style="font-size: 2rem;">🏆 Total Possible Points: 35</p>
+                    <p style="font-size: 1.2rem; margin-top: 1rem;">Easy (5) + Medium (10) + Hard (20)</p>
+                </div>
+
+                <div class="procedure-box" style="margin-top: 2rem;">
+                    <h3 style="text-align: center;">💡 Pro Tips</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li>✓ Test your code thoroughly before raising your hand</li>
+                        <li>✓ Start with the easy maze to build confidence</li>
+                        <li>✓ Manage your time - don't spend too long on one maze</li>
+                        <li>✓ Stay calm and focused throughout the challenge</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <h1 style="font-size: 2.5rem;">Good Luck! 🚀</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const progressBar = document.getElementById('progressBar');
+        const slideCounter = document.getElementById('slideCounter');
+
+        // Create floating particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 15; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.width = Math.random() * 10 + 5 + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            particle.style.animationDuration = Math.random() * 10 + 10 + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else if (index < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            progressBar.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+            slideCounter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) currentSlide = 0;
+            if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+            updateSlide();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+        });
+
+        // Initialize
+        updateSlide();
+    </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+Ada's Core Round I
+The Edison Maze Showdown
+timing is 1:30mins
+Rules:
+No external help google or ai Chatbots (Marks deducted or potential disqualification)
+once your robot is able to finish a maze you will raise your hand so a host team member approches you and access your work.
+Once approved you may proceed to the next 
+
+3 mazes
+easy medium hard
+easy(5 points)
+medium(10points)
+hard(20 points)
+
+(reserve a 500x500 pixel spot for the image of the maze)
+
+1. Walk in the park:
+(description) easy
+
+2. The Turnaround
+medium
+
+3. The Mess
+Hard (Goodluck with this one :) )
